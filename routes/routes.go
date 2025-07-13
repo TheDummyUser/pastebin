@@ -7,9 +7,8 @@ import (
 )
 
 func RegisterRoutes(e *echo.Echo, db *gorm.DB) {
-
-	e.GET("/getpasts", func(c echo.Context) error {
-		return handlers.GetAllPastes(c, db)
+	e.GET("/:uuid", func(c echo.Context) error {
+		return handlers.GetSinglePost(c, db)
 	})
 
 	e.POST("/paste", func(c echo.Context) error {

@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"errors"
+	"net/http"
+
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/thedummyuser/pastebin/models"
 	"gorm.io/gorm"
-	"net/http"
 )
 
 type PastePostReq struct {
@@ -18,19 +20,31 @@ type PasteResponse struct {
 	Content string `json:"content"`
 }
 
-func GetAllPastes(c echo.Context, db *gorm.DB) error {
-	var pastes []models.Paste
+func GetSinglePost(c echo.Context, db *gorm.DB) error {
+	uuid := c.Param("uuid")
+	var paste models.Paste
 
-	if err := db.Find(&pastes).Error; err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "failed to fetch pastes",
+	if uuid == "" {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"message": "please provide uuid before calling the api",
+		})
+	}
+
+	result := db.First(&paste, "uuid = ?", uuid)
+
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
+			"message": "Paste not found",
+		})
+	} else if result.Error != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"message": "Something went wrong",
 		})
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "successfully fetched all pastes",
-		"count":   len(pastes),
-		"data":    pastes,
+		"message": "Fetched the paste",
+		"data":    paste,
 	})
 }
 
