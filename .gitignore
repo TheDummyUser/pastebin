@@ -2,3 +2,5 @@
 *.sqlite
 /cmd/*.db
 /cmd/*.sqlite
+bin/
+/bin/*
